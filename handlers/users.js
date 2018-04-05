@@ -3,15 +3,23 @@ const { User } = require('../models');
 function getUsers(req, res, next) {
     return User.find()
         .then(users => {
-            return res.json(users);
+            let rsp = { data: users };
+            return res.json(rsp);
         })
         .catch(err => {
-            return res.error(err);
+            return res.json(err);
         })
 }
 
 function createUser(req, res, next) {
-
+    return User.create(req.body)
+        .then(user => {
+            let rsp = { data: user };
+            return res.json(rsp);
+        })
+        .catch(err => {
+            return res.json(err);
+        })
 }
 
 function getUser(req, res, next) {

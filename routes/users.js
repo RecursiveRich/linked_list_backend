@@ -1,6 +1,6 @@
 const express = require('express');
 const { getUsers, createUser, getUser, updateUser, deleteUser } = require('../handlers');
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 router
     .route('/')

@@ -1,10 +1,12 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
-    firstName: { type: String, minlength: 1, maxlength: 55 },
-    lastName: { type: String, minlength: 1, maxlength: 55 },
+    firstName: { type: String, minlength: 1, maxlength: 55, required: true },
+    lastName: { type: String, minlength: 1, maxlength: 55, required: true },
     username: { type: String, minlength: 1, maxlength: 55, required: true },
     email: { type: String, minlength: 1, maxlength: 55, required: true },
+    password: { type: String, minlength: 1, maxlength: 55, required: true },
     // currentCompany: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
     photo: String,
     experience: [{
@@ -20,6 +22,32 @@ const userSchema = new mongoose.Schema({
     }],
     skills: [String]
 }, { timestamps: true });
+
+// pre-hook to hash password before saving
+userSchema.pre('save', function (next) {
+    console.log('pre-hook triggered');
+    const user = this;
+    if (!user.isModified('password')) return next();
+    console.log(user.password);
+    console.log(bcrypt.hash(user.password, 10));
+    return bcrypt
+        .hash(user.password, 10)
+        .then(hashedPassword => {
+            user.password = hashedPassword;
+            console.log(user.password);
+            return next();
+        })
+        .catch(err => next(err));
+});
+
+// comparePassword instance method
+userSchema.methods.comparePassword = function (candidatePassword, next) {
+    return bcrypt
+        .compare(candidatePassword, this.password, (err, isMatch) => {
+            if (err) return next(err);
+            return next(null, isMatch);
+        })
+}
 
 const User = mongoose.model('User', userSchema);
 
