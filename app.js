@@ -24,6 +24,7 @@ app.use((error, req, res, next) => {
         .send(error.message || "Something went wrong!");
 });
 
+// Remove this
 app.use((req, res, next) => res.json('last line'));
 
 app.listen(PORT, () => {

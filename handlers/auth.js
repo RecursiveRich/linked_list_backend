@@ -42,8 +42,6 @@ function ensureCorrectUser(req, res, next) {
         const token = req.headers.authorization.split(' ')[1];
         jwt.verify(token, SECRET_KEY, (err, decoded) => {
             if (decoded.username !== req.params.username) return res.status(401).json({ message: "Not Authorized" });
-            // REMOVE THIS LINE
-            console.log('decoded: ', decoded);
             return next();
         })
     }

@@ -34,12 +34,23 @@ function getUser(req, res, next) {
 }
 
 function updateUser(req, res, next) {
-    // NEED REAL CODE HERE
-    return res.json("updateUser invoked");
+    return User.findOneAndUpdate({ username: req.params.username }, req.body, { new: true })
+        .then(user => {
+            let rsp = { data: user };
+            return res.json(rsp);
+        })
+        .catch(err => res.json(err));
 }
 
 function deleteUser(req, res, next) {
-
+    return User.findOneAndRemove({ username: req.params.username })
+        .then(user => {
+            let rsp = {
+                title: 'Success',
+                message: "The delete operation was successful"
+            };
+            return res.json(rsp);
+        })
 }
 
 

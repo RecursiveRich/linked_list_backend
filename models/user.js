@@ -31,7 +31,23 @@ userSchema.pre('save', function (next) {
         .hash(user.password, 10)
         .then(hashedPassword => {
             user.password = hashedPassword;
-            console.log(user.password);
+            return next();
+        })
+        .catch(err => next(err));
+});
+
+// pre-hook to hash password before updating
+userSchema.pre('findOneAndUpdate', function (next) {
+    // 'this' refers to the query object for a query
+    // Example: this.getUpdate() === { skills: [ 'orator' ],
+    // '$set': { updatedAt: 2018 - 04 - 06T18: 35: 59.893Z },
+    // '$setOnInsert': { createdAt: 2018 - 04 - 06T18: 35: 59.893Z }}
+    const password = this.getUpdate().password;
+    if (!password) return next();
+    return bcrypt
+        .hash(password, 10)
+        .then(hashedPassword => {
+            this.getUpdate().password = hashedPassword;
             return next();
         })
         .catch(err => next(err));
