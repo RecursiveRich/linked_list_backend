@@ -6,7 +6,7 @@ const app = express();
 const PORT = 3017;
 
 const { usersRouter } = require('./routes');
-const { userAuthHandler, getToken } = require('./handlers');
+const { userAuthHandler } = require('./handlers');
 
 app.use(bodyParser.json());
 app.use(methodOverride('_method'));
@@ -18,12 +18,13 @@ app.get('/', (req, res, next) => {
 });
 
 app.post('/user-auth', userAuthHandler);
-app.use('/users/:username', getToken);
 
 app.use((error, req, res, next) => {
     return res.status(error.status || 500)
         .send(error.message || "Something went wrong!");
 });
+
+app.use((req, res, next) => res.json('last line'));
 
 app.listen(PORT, () => {
     console.log("Server has started on port 3017");

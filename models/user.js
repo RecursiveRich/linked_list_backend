@@ -25,11 +25,8 @@ const userSchema = new mongoose.Schema({
 
 // pre-hook to hash password before saving
 userSchema.pre('save', function (next) {
-    console.log('pre-hook triggered');
     const user = this;
     if (!user.isModified('password')) return next();
-    console.log(user.password);
-    console.log(bcrypt.hash(user.password, 10));
     return bcrypt
         .hash(user.password, 10)
         .then(hashedPassword => {

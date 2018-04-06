@@ -23,11 +23,19 @@ function createUser(req, res, next) {
 }
 
 function getUser(req, res, next) {
-
+    return User.findOne({ username: req.params.username })
+        .then(user => {
+            let rsp = { data: user };
+            return res.json(rsp);
+        })
+        .catch(err => {
+            return res.json(err);
+        })
 }
 
 function updateUser(req, res, next) {
-
+    // NEED REAL CODE HERE
+    return res.json("updateUser invoked");
 }
 
 function deleteUser(req, res, next) {

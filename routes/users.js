@@ -1,5 +1,5 @@
 const express = require('express');
-const { getUsers, createUser, getUser, updateUser, deleteUser } = require('../handlers');
+const { getUsers, createUser, getUser, updateUser, deleteUser, verifyToken, ensureCorrectUser } = require('../handlers');
 const router = express.Router({ mergeParams: true });
 
 router
@@ -9,8 +9,8 @@ router
 
 router
     .route('/:username')
-    .get(getUser)
-    .patch(updateUser)
-    .delete(deleteUser);
+    .get(verifyToken, getUser)
+    .patch(ensureCorrectUser, updateUser)
+    .delete(ensureCorrectUser, deleteUser);
 
 module.exports = router;
