@@ -1,5 +1,5 @@
 const { getUsers, createUser, getUser, updateUser, deleteUser } = require('./users');
-const { userAuthHandler, verifyToken, ensureCorrectUser } = require('./auth');
+const { userAuthHandler, companyAuthHandler, verifyToken, ensureCorrectUser, ensureCorrectCompany } = require('./auth');
 
 module.exports = {
     getUsers,       // GET to /users
@@ -8,6 +8,8 @@ module.exports = {
     updateUser,     // PATCH to /users/${username} Auth + Correct User
     deleteUser,      // DELETE to /users/${username} Auth + Correct User
     userAuthHandler,
+    companyAuthHandler,
     verifyToken,
-    ensureCorrectUser
+    ensureCorrectUser,
+    ensureCorrectCompany
 };

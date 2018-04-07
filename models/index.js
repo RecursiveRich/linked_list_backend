@@ -13,4 +13,5 @@ mongoose
     });
 
 exports.User = require('./user');
+exports.Company = require('./company');
 // export other models once created

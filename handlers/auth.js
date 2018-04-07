@@ -2,11 +2,9 @@
 require('dotenv').load();
 const SECRET_KEY = process.env.SECRET_KEY;
 const jwt = require('jsonwebtoken');
-const { User } = require('../models');
+const { User, Company } = require('../models');
 
 function userAuthHandler(req, res, next) {
-    console.log('hit userAuthHandler')
-    console.log(req.body);
     return User.findOne({ username: req.body.username })
         .then(user => {
             if (!user) return res.status(401).json({
@@ -17,6 +15,25 @@ function userAuthHandler(req, res, next) {
                     message: 'Invalid Credentials'
                 })
                 const token = jwt.sign({ username: user.username }, SECRET_KEY, {
+                    expiresIn: 60 * 60
+                });
+                return res.json({ message: 'Authenticated!', token });
+            })
+        })
+        .catch(err => next(err));
+}
+
+function companyAuthHandler(req, res, next) {
+    return Company.findOne({ handle: req.body.handle })
+        .then(company => {
+            if (!company) return res.status(401).json({
+                message: 'Invalid Credentials'
+            });
+            return company.comparePassword(req.body.password, (err, isMatch) => {
+                if (!isMatch) return res.status(401).json({
+                    message: 'Invalid Credentials'
+                })
+                const token = jwt.sign({ handle: company.handle }, SECRET_KEY, {
                     expiresIn: 60 * 60
                 });
                 return res.json({ message: 'Authenticated!', token });
@@ -50,8 +67,23 @@ function ensureCorrectUser(req, res, next) {
     }
 }
 
+function ensureCorrectCompany(req, res, next) {
+    try {
+        const token = req.headers.authorization.split(' ')[1];
+        jwt.verify(token, SECRET_KEY, (err, decoded) => {
+            if (decoded.handle !== req.params.handle) return res.status(401).json({ message: "Not Authorized" });
+            return next();
+        })
+    }
+    catch (err) {
+        return res.status(401).json({ message: "Not Authorized" });
+    }
+}
+
 module.exports = {
     userAuthHandler,
+    companyAuthHandler,
     verifyToken,
-    ensureCorrectUser
+    ensureCorrectUser,
+    ensureCorrectCompany
 };
