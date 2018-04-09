@@ -2,8 +2,8 @@ const { Company } = require('../models');
 
 function getCompanies(req, res, next) {
     return Company.find()
-        .then(company => {
-            let rsp = { data: company };
+        .then(companies => {
+            let rsp = { data: companies };
             return res.json(rsp);
         })
         .catch(err => {
@@ -14,7 +14,7 @@ function getCompanies(req, res, next) {
 function createCompany(req, res, next) {
     return Company.create(req.body)
         .then(company => {
-            let rsp = { data: user };
+            let rsp = { data: company };
             return res.json(rsp);
         })
         .catch(err => {
@@ -33,8 +33,8 @@ function getCompany(req, res, next) {
         })
 }
 
-function updateUser(req, res, next) {
-    return Company.findOneAndUpdate({ handle: req.params.username }, req.body, { new: true })
+function updateCompany(req, res, next) {
+    return Company.findOneAndUpdate({ handle: req.params.handle }, req.body, { new: true })
         .then(company => {
             let rsp = { data: company };
             return res.json(rsp);
@@ -42,7 +42,7 @@ function updateUser(req, res, next) {
         .catch(err => res.json(err));
 }
 
-function deleteUser(req, res, next) {
+function deleteCompany(req, res, next) {
     return Company.findOneAndRemove({ handle: req.params.handle })
         .then(company => {
             let rsp = {

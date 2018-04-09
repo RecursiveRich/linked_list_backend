@@ -1,8 +1,7 @@
-
+const { User, Company, Job } = require('../models');
 require('dotenv').load();
 const SECRET_KEY = process.env.SECRET_KEY;
 const jwt = require('jsonwebtoken');
-const { User, Company } = require('../models');
 
 function userAuthHandler(req, res, next) {
     return User.findOne({ username: req.body.username })
@@ -33,7 +32,8 @@ function companyAuthHandler(req, res, next) {
                 if (!isMatch) return res.status(401).json({
                     message: 'Invalid Credentials'
                 })
-                const token = jwt.sign({ handle: company.handle }, SECRET_KEY, {
+                // added company._id to the token payload
+                const token = jwt.sign({ handle: company.handle, companyId: company._id }, SECRET_KEY, {
                     expiresIn: 60 * 60
                 });
                 return res.json({ message: 'Authenticated!', token });
@@ -80,10 +80,40 @@ function ensureCorrectCompany(req, res, next) {
     }
 }
 
+function ensureIsCompany(req, res, next) {
+    try {
+        const token = req.headers.authorization.split(' ')[1];
+        jwt.verify(token, SECRET_KEY, (err, decoded) => {
+            if (err) return next(err);
+            if (!decoded.companyId) return res.status(401).json({ message: "Must be a company to post a job" });
+            return next();
+        })
+    }
+    catch (err) {
+        return res.status(401).json({ message: "Not Authorized" });
+    }
+}
+
+function ensureCorrectJob(req, res, next) {
+    const token = req.headers.authorization.split(' ')[1];
+    jwt.verify(token, SECRET_KEY, (err, decoded) => {
+        if (err) return next(err);
+        Job.findById(req.params.jobId)
+            .then(job => {
+                if (!decoded.companyId) return res.status(401).json({ message: "Must be a company to post a job" });
+                if (decoded.companyId === job.company) return next();
+                return res.status(401).json({ message: "Not Authorized" });
+            })
+            .catch(err => next(err));
+    })
+}
+
 module.exports = {
     userAuthHandler,
     companyAuthHandler,
     verifyToken,
     ensureCorrectUser,
-    ensureCorrectCompany
+    ensureCorrectCompany,
+    ensureIsCompany,
+    ensureCorrectJob
 };

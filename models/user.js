@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+// This is what Michael meant, yes?
+const Company = mongoose.model('Company');
 
 const userSchema = new mongoose.Schema({
     firstName: { type: String, minlength: 1, maxlength: 55, required: true },
@@ -7,11 +9,15 @@ const userSchema = new mongoose.Schema({
     username: { type: String, minlength: 1, maxlength: 55, required: true },
     email: { type: String, minlength: 1, maxlength: 55, required: true },
     password: { type: String, minlength: 1, maxlength: 55, required: true },
-    // currentCompany: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
+    currentCompanyName: { type: String, minlength: 1, maxlength: 55 },
+    // If it exists
+    currentCompanyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
     photo: String,
     experience: [{
         jobTitle: String,
-        // company: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
+        comanyName: { type: String, minlength: 1, maxlength: 55 },
+        // If it exists
+        companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
         startDate: Date,
         endDate: Date
     }],
@@ -20,6 +26,7 @@ const userSchema = new mongoose.Schema({
         degree: String,
         endDate: Date
     }],
+    applied: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Job' }],
     skills: [String]
 }, { timestamps: true });
 
@@ -49,6 +56,40 @@ userSchema.pre('findOneAndUpdate', function (next) {
         })
         .catch(err => next(err));
 });
+
+// Add username to company employees
+userSchema.post('save', function (next) {
+    const user = this;
+    if (user.currentCompanyId) {
+        Company.findByIdAndUpdate(user.currentCompanyId, { $addToSet: { employees: user.username } })
+    }
+    return next();
+})
+
+// Update username if user changes company
+userSchema.post('findOneAndUpdate', function (next) {
+    // 'this' is the query Object
+    // I'm finding user by id.  Daniel searched by username. Daniel: User.findOne({username: this._conditions.username})
+    const user = User.findById(this._conditions._id);
+    if (user.isModified('currentCompanyId')) {
+        Company.findByIdAndUpdate(user.currentCompanyId, { $pull: { employees: user.username } });
+        let newCurrentCompanyId = this.getUpdate().currentCompanyId;
+        Company.findByIdAndUpdate(newCurrentCompanyId, { $addToSet: { employees: user.username } });
+    }
+    return next();
+})
+
+
+// Remove username to company employees
+// USER DOES NOT EQUAL THIS IN A QUERY
+// Does this work as a post-hook?  Won't the user already be deleted?
+userSchema.post('findOneAndRemove', function (next) {
+    const user = User.findById(this._conditions._id);
+    if (user.currentCompanyId) {
+        Company.findByIdAndUpdate(user.currentCompanyId, { $pull: { employees: user.username } })
+    }
+    return next();
+})
 
 // comparePassword instance method
 userSchema.methods.comparePassword = function (candidatePassword, next) {

@@ -5,7 +5,7 @@ const methodOverride = require('method-override');
 const app = express();
 const PORT = 3017;
 
-const { usersRouter, companyRouter } = require('./routes');
+const { usersRouter, companiesRouter, jobsRouter } = require('./routes');
 const { userAuthHandler, companyAuthHandler } = require('./handlers');
 
 app.use(bodyParser.json());
@@ -13,6 +13,7 @@ app.use(methodOverride('_method'));
 app.use(morgan('dev'));
 app.use('/users', usersRouter);
 app.use('/companies', companiesRouter);
+app.use('/jobs', jobsRouter);
 
 app.get('/', (req, res, next) => {
     return res.redirect('/users');

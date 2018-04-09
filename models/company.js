@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 // This is what Michael meant, yes?
-// const Job = mongoose.model('Job');
 // Do I need to import User as well?  B/c of the refs?
+const Job = mongoose.model('Job');
 
 const companySchema = new mongoose.Schema({
     name: { type: String, minlength: 1, maxlength: 55, required: true },
@@ -10,7 +10,8 @@ const companySchema = new mongoose.Schema({
     email: { type: String, minlength: 1, maxlength: 55, required: true },
     handle: { type: String, minlength: 1, maxlength: 55, required: true },
     logo: String,
-    employees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    // employees is an array of usernames
+    employees: [String],
     jobs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Job' }]
 });
 
@@ -28,8 +29,8 @@ companySchema.pre('save', function (next) {
 });
 
 // pre-hook to hash password before updating
+// 'this' refers to the query object for a query
 companySchema.pre('findOneAndUpdate', function (next) {
-    // 'this' refers to the query object for a query
     const password = this.getUpdate().password;
     if (!password) return next();
     return bcrypt
@@ -39,6 +40,18 @@ companySchema.pre('findOneAndUpdate', function (next) {
             return next();
         })
         .catch(err => next(err));
+});
+
+// Delete all the jobs when a company is deleted
+// 'this' refers to the query object for a query
+companySchema.post('findOneAndRemove', function (next) {
+    const company = Company.findById(this._conditions._id);
+    company.jobs.forEach(jobId => {
+        Job.findByIdAndRemove(jobId, { $pull: { jobs: jobId } })
+            .then(() => next())
+            .catch(e => next(e));
+    })
+    return next();
 });
 
 // comparePassword instance method

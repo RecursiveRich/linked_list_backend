@@ -1,2 +1,3 @@
 exports.usersRouter = require('./users');
-exports.companyRouter = require('./companies');
+exports.companiesRouter = require('./companies');
+exports.jobsRouter = require('./jobs');
