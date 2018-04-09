@@ -99,11 +99,13 @@ function ensureIsCompany(req, res, next) {
 function ensureCorrectJob(req, res, next) {
     const token = req.headers.authorization.split(' ')[1];
     jwt.verify(token, SECRET_KEY, (err, decoded) => {
+        console.log('decoded is ', decoded);
         if (err) return next(err);
+        console.log('jobId is...', req.params.jobId);
         Job.findById(req.params.jobId)
             .then(job => {
                 if (!decoded.companyId) return res.status(401).json({ message: "Must be a company to post a job" });
-                if (decoded.companyId === job.company) return next();
+                if (decoded.companyId === job.company.toString()) return next();
                 return res.status(401).json({ message: "Not Authorized" });
             })
             .catch(err => next(err));
