@@ -15,9 +15,11 @@ function createUser(req, res, next) {
     return User.create(req.body)
         .then(user => {
             let rsp = { data: user };
+            console.log("rsp is ", rsp);
             return res.json(rsp);
         })
         .catch(err => {
+            console.log('catch is invoked', err)
             return res.json(err);
         })
 }

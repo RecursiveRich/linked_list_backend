@@ -1,7 +1,5 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-// This is what Michael meant, yes?
-const Company = mongoose.model('Company');
 
 const jobSchema = new mongoose.Schema({
     title: { type: String, minlength: 1, maxlength: 55, required: true },
@@ -11,9 +9,11 @@ const jobSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Add job to company jobs
-jobSchema.post('save', function (next) {
-    const job = this;
-    Company.findByIdAndUpdate(job.company, { $addToSet: { jobs: job._id } })
+// http://mongoosejs.com/docs/middleware.html#post-async
+// "If your post hook function takes at least 2 parameters, mongoose will assume the second parameter is a next() function that you will call to trigger the next middleware in the sequence."
+jobSchema.post('save', function (job, next) {
+    // Can't require('Company') above, else stuck in circular loop
+    mongoose.model('Company').findByIdAndUpdate(job.company, { $addToSet: { jobs: job._id } })
         .then(() => next())
         .catch(e => next(e))
 })
@@ -21,9 +21,9 @@ jobSchema.post('save', function (next) {
 // Remove job from company jobs
 // JOB DOES NOT EQUAL THIS IN A QUERY
 // Does this work as a post-hook?  Won't the user already be deleted?
-jobSchema.post('findOneAndRemove', function (next) {
-    const job = Job.findById(this._conditions._id);
-    Company.findByIdAndUpdate(job.company, { $pull: { jobs: job._id } })
+jobSchema.post('findOneAndRemove', function (job, next) {
+    // Can't require('Company') above, else stuck in circular loop
+    mongoose.model('Company').findByIdAndUpdate(job.company, { $pull: { jobs: job._id } })
         .then(() => next())
         .catch(e => next(e))
 })

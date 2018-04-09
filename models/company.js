@@ -1,8 +1,5 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
-// This is what Michael meant, yes?
-// Do I need to import User as well?  B/c of the refs?
-const Job = mongoose.model('Job');
 
 const companySchema = new mongoose.Schema({
     name: { type: String, minlength: 1, maxlength: 55, required: true },
@@ -44,10 +41,10 @@ companySchema.pre('findOneAndUpdate', function (next) {
 
 // Delete all the jobs when a company is deleted
 // 'this' refers to the query object for a query
-companySchema.post('findOneAndRemove', function (next) {
-    const company = Company.findById(this._conditions._id);
+companySchema.post('findOneAndRemove', function (company, next) {
     company.jobs.forEach(jobId => {
-        Job.findByIdAndRemove(jobId, { $pull: { jobs: jobId } })
+        // Can't require('Job') above, else stuck in circular loop
+        mongoose.model('Job').findByIdAndRemove(jobId, { $pull: { jobs: jobId } })
             .then(() => next())
             .catch(e => next(e));
     })
