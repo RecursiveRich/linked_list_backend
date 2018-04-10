@@ -3,7 +3,7 @@ mongoose.Promise = Promise;
 mongoose.set('debug', true);
 mongoose
     .connect('mongodb://localhost/linked_list_db', {
-        useMongoClient: true
+        // useMongoClient: true
     })
     .then(() => {
         console.log("Connected to MongoDB");

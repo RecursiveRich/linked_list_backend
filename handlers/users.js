@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const { User } = require('../models');
 
 function getUsers(req, res, next) {
@@ -15,11 +16,9 @@ function createUser(req, res, next) {
     return User.create(req.body)
         .then(user => {
             let rsp = { data: user };
-            console.log("rsp is ", rsp);
             return res.json(rsp);
         })
         .catch(err => {
-            console.log('catch is invoked', err)
             return res.json(err);
         })
 }
@@ -36,13 +35,34 @@ function getUser(req, res, next) {
 }
 
 function updateUser(req, res, next) {
-    return User.findOneAndUpdate({ username: req.params.username }, req.body, { new: true })
+    var oldCompanyId;
+    var userId;
+    var username;
+    var user1;
+    return User.findOne({ username: req.params.username })
         .then(user => {
-            let rsp = { data: user };
+            oldCompanyId = user.currentCompanyId;
+            userId = user._id;
+            username = user.username;
+            return user.update(req.body);
+        })
+        .then(queryData => {
+            return mongoose.model('Company').findByIdAndUpdate(oldCompanyId, { $pull: { employees: username } })
+        })
+        .then(oldCompany => {
+            return User.findById(userId);
+        })
+        .then(user => {
+            user1 = user;
+            return mongoose.model('Company').findByIdAndUpdate(user.currentCompanyId, { $addToSet: { employees: username } })
+        })
+        .then(newCompany => {
+            let rsp = { data: user1 };
             return res.json(rsp);
         })
-        .catch(err => res.json(err));
+        .catch(e => next(e));
 }
+
 
 function deleteUser(req, res, next) {
     return User.findOneAndRemove({ username: req.params.username })

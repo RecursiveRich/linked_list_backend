@@ -36,9 +36,6 @@ userSchema.pre('save', function (next) {
         .hash(user.password, 10)
         .then(hashedPassword => {
             user.password = hashedPassword;
-            // REMOVE THIS!!!!!!!!!!!!!!!!!
-            console.log('pre-hook invoked');
-            console.log(next);
             return next();
         })
         .catch(err => next(err));
@@ -65,22 +62,32 @@ userSchema.post('save', function (user, next) {
     if (user.currentCompanyId) {
         // Can't require('Company') above, else stuck in circular loop
         mongoose.model('Company').findByIdAndUpdate(user.currentCompanyId, { $addToSet: { employees: user.username } })
+            .then(() => next())
+            .catch(e => next(e));
+    } else {
+        return next();
     }
-    return next();
 })
 
 // Update username if user changes company
-userSchema.post('findOneAndUpdate', function (user, next) {
-    // 'this' is the query Object
-    // I'm finding user by id.  Daniel searched by username. Daniel: User.findOne({username: this._conditions.username})
-    if (user.isModified('currentCompanyId')) {
-        // Can't require('Company') above, else stuck in circular loop
-        mongoose.model('Company').findByIdAndUpdate(user.currentCompanyId, { $pull: { employees: user.username } });
-        let newCurrentCompanyId = this.getUpdate().currentCompanyId;
-        mongoose.model('Company').findByIdAndUpdate(newCurrentCompanyId, { $addToSet: { employees: user.username } });
-    }
-    return next();
-})
+// This would work if we return the old doc, but we are returning the new doc, so no access to the old companyId
+// userSchema.post('findOneAndUpdate', function (user, next) {
+//     // 'this' is the query Object
+//     if (this.getUpdate()['currentCompanyId']) {
+//         // Can't require('Company') above, else stuck in circular loop
+//         mongoose.model('Company').findByIdAndUpdate(user.currentCompanyId, { $pull: { employees: user.username } })
+//             .then(c => {
+//                 let newCurrentCompanyId = this.getUpdate().currentCompanyId;
+//                 mongoose.model('Company').findByIdAndUpdate(newCurrentCompanyId, { $addToSet: { employees: user.username } })
+//                     .then(c => next())
+//                     .catch(e => next(e));
+//             })
+//             .catch(e => next(e));
+//     }
+//     else {
+//         return next();
+//     }
+// })
 
 
 // Remove username to company employees
@@ -90,8 +97,12 @@ userSchema.post('findOneAndRemove', function (user, next) {
     if (user.currentCompanyId) {
         // Can't require('Company') above, else stuck in circular loop
         mongoose.model('Company').findByIdAndUpdate(user.currentCompanyId, { $pull: { employees: user.username } })
+            .then(c => next())
+            .catch(e => next(e));
     }
-    return next();
+    else {
+        return next();
+    }
 })
 
 // comparePassword instance method
