@@ -14,7 +14,7 @@ function userAuthHandler(req, res, next) {
                     message: 'Invalid Credentials'
                 })
                 const token = jwt.sign({ username: user.username }, SECRET_KEY, {
-                    expiresIn: 60 * 60
+                    expiresIn: 60 * 480
                 });
                 return res.json({ message: 'Authenticated!', token });
             })
@@ -34,7 +34,7 @@ function companyAuthHandler(req, res, next) {
                 })
                 // added company._id to the token payload
                 const token = jwt.sign({ handle: company.handle, companyId: company._id }, SECRET_KEY, {
-                    expiresIn: 60 * 60
+                    expiresIn: 60 * 480
                 });
                 return res.json({ message: 'Authenticated!', token });
             })

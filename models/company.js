@@ -42,12 +42,16 @@ companySchema.pre('findOneAndUpdate', function (next) {
 // Delete all the jobs when a company is deleted
 // 'this' refers to the query object for a query
 companySchema.post('findOneAndRemove', function (company, next) {
+    // Could use updateMany here instead of forEach
     company.jobs.forEach(jobId => {
         // Can't require('Job') above, else stuck in circular loop
         mongoose.model('Job').findByIdAndRemove(jobId, { $pull: { jobs: jobId } })
             .then(() => next())
             .catch(e => next(e));
     })
+    mongoose.model('User').updateMany({ currentCompanyId: company._id }, { currentCompanyId: null })
+        .then(() => next())
+        .catch(e => next(e));
     return next();
 });
 
