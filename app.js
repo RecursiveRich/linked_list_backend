@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const methodOverride = require('method-override');
 const app = express();
-const PORT = 3017;
+const PORT = 5000;
 
 const { usersRouter, companiesRouter, jobsRouter } = require('./routes');
 const { userAuthHandler, companyAuthHandler } = require('./handlers');
@@ -28,7 +28,7 @@ app.use((error, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-    console.log("Server has started on port 3017");
+    console.log("Server has started on port 5000");
 });
 
 

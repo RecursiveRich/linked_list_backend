@@ -12,7 +12,8 @@ function getJobs(req, res, next) {
 }
 
 function createJob(req, res, next) {
-    return Job.create(req.body)
+    // added .data
+    return Job.create(req.body.data)
         .then(job => {
             let rsp = { data: job };
             return res.json(rsp);
@@ -34,7 +35,8 @@ function getJob(req, res, next) {
 }
 
 function updateJob(req, res, next) {
-    return Job.findByIdAndUpdate(req.params.jobId, req.body, { new: true })
+    // added .data
+    return Job.findByIdAndUpdate(req.params.jobId, req.body.data, { new: true })
         .then(job => {
             let rsp = { data: job };
             return res.json(rsp);

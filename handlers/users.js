@@ -13,7 +13,8 @@ function getUsers(req, res, next) {
 }
 
 function createUser(req, res, next) {
-    return User.create(req.body)
+    // added .data
+    return User.create(req.body.data)
         .then(user => {
             let rsp = { data: user };
             return res.json(rsp);
@@ -44,7 +45,8 @@ function updateUser(req, res, next) {
             oldCompanyId = user.currentCompanyId;
             userId = user._id;
             username = user.username;
-            return user.update(req.body);
+            // added .data
+            return user.update(req.body.data);
         })
         .then(queryData => {
             return mongoose.model('Company').findByIdAndUpdate(oldCompanyId, { $pull: { employees: username } })

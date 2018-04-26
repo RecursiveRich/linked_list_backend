@@ -12,7 +12,8 @@ function getCompanies(req, res, next) {
 }
 
 function createCompany(req, res, next) {
-    return Company.create(req.body)
+    // added .data
+    return Company.create(req.body.data)
         .then(company => {
             let rsp = { data: company };
             return res.json(rsp);
@@ -34,7 +35,8 @@ function getCompany(req, res, next) {
 }
 
 function updateCompany(req, res, next) {
-    return Company.findOneAndUpdate({ handle: req.params.handle }, req.body, { new: true })
+    // added a .data
+    return Company.findOneAndUpdate({ handle: req.params.handle }, req.body.data, { new: true })
         .then(company => {
             let rsp = { data: company };
             return res.json(rsp);
