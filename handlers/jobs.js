@@ -2,6 +2,10 @@ const { Job } = require('../models');
 
 function getJobs(req, res, next) {
     return Job.find()
+        // just need the handle for the company, not everything
+        // company: {_id: ObjectId, handle: "google"}
+        .populate('company', 'handle')
+        .exec()
         .then(jobs => {
             let rsp = { data: jobs };
             return res.json(rsp);
